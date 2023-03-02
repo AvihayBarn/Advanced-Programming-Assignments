@@ -53,11 +53,11 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 	struct Package* package = malloc( sizeof( struct Package));
-	package->key = atoi(argv[0]);
+	package->key = atoi(argv[1]);
 
-	if(!(strcmp(argv[1],"-e") == 0)  || !(strcmp(argv[1],"-d") == 0) )
+	if(!(strcmp(argv[2],"-e") == 0)  || !(strcmp(argv[2],"-d") == 0) )
 	{
-		printf("%s",argv[1]);
+		printf("%s",argv[2]);
 		perror("Not a valid flag");
 		exit(0);
 	}
