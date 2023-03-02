@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 	struct Package* package = malloc( sizeof( struct Package));
-	buffer = malloc( BUFFER * sizeof( struct char));
+	buffer = malloc( BUFFER * sizeof(char));
 	package->key = atoi(argv[1]);
 
 	if( strcmp(argv[2],"-e") != 0  && strcmp(argv[2],"-d") != 0 )
