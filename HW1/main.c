@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdint.h>
 #include "thpool.h"
 
@@ -19,8 +20,8 @@ typedef struct Package{
 void WritingToFile(void *arg){
 
 	Package* package = (Package*)arg;
-	char buffer[BUFFER_SIZE];
-	memset(buffer,0,BUFFER_SIZE);
+	char buffer[BUFFER];
+	memset(buffer,0,BUFFER);
 	int size = read(0,buffer,BUFFER);
 	if (strcmp(package->flag , "-e") == 0){
 		encrypt(buffer, package->key);
@@ -54,20 +55,20 @@ int main(int argc, char *argv[])
 	struct Package* package = malloc( sizeof( struct Package));
 	package->key = atoi(argv[1]);
 
-	if(!(strcmp(argv[2],"-e") == 0)  && !(strcmp(argv[2],"-d") == 0) )
+	if(!(strcmp(argv[2],"-e") == 0)  || !(strcmp(argv[2],"-d") == 0) )
 	{
 		perror("Not a valid flag");
 		exit(0);
 	}
-	package->flag = argv[2];
+	package->flag = (strcmp(argv[2], "-e")) ? "-e" : "-d";
 		
 	puts("Making threadpool with 4 threads");
 	threadpool thpool = thpool_init(4);
 
 	puts("Adding 4 tasks to threadpool");
 	
-    for (i=0; i < THREADS; i++){
-		thpool_add_work(thpool, task, (void*)(Package*)package);
+    for (int i=0; i < THREADS; i++){
+		thpool_add_work(thpool, WritingToFile, (void*)(Package*)package);
 	};
 	
 	
