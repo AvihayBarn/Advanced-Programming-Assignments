@@ -17,7 +17,7 @@ typedef struct Package{
 } Package;
 
 
-
+char* buffer;
 
 void WritingToFile(void *arg){
 
