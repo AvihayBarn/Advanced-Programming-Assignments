@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
 
 	if(!(strcmp(argv[1],"-e") == 0)  || !(strcmp(argv[1],"-d") == 0) )
 	{
+		printf("%s",argv[1]);
 		perror("Not a valid flag");
 		exit(0);
 	}
