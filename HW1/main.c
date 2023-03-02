@@ -53,15 +53,15 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 	struct Package* package = malloc( sizeof( struct Package));
-	package->key = atoi(argv[1]);
+	package->key = atoi(argv[0]);
 
-	if(!(strcmp(argv[2],"-e") == 0)  || !(strcmp(argv[2],"-d") == 0) )
+	if(!(strcmp(argv[1],"-e") == 0)  || !(strcmp(argv[1],"-d") == 0) )
 	{
 		perror("Not a valid flag");
 		exit(0);
 	}
 	package->flag[0] = '-';
-	package->flag[1] = (strcmp(argv[2], "-e")) ? 'e' : 'd';
+	package->flag[1] = (strcmp(argv[1], "-e")) ? 'e' : 'd';
 		
 	puts("Making threadpool with 4 threads");
 	threadpool thpool = thpool_init(4);
