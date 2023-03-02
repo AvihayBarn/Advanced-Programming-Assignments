@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 
 	puts("Adding 4 tasks to threadpool");
 	
-    for (int i=0; i < THREADS; i++){
+    for (int i=0; i < 40; i++){
 		thpool_add_work(thpool, WritingToFile, (void*)(Package*)package);
 	};
 	
