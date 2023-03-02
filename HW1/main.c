@@ -26,11 +26,13 @@ void WritingToFile(void *arg){
 	memset(buffer,0,BUFFER);
 	int size = read(0,buffer,BUFFER);
 	if (strcmp(package->flag , "-e") == 0){
+		printf("%s", buffer);
 		encrypt(buffer, package->key);
 		printf("%s", buffer);
 		
 	}
 	else if (strcmp(package->flag , "-d") == 0){
+		printf("%s", buffer);
 		decrypt(buffer, package->key);
 		printf("%s", buffer);
 		
