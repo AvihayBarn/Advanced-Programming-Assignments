@@ -16,11 +16,13 @@ typedef struct Package{
 	
 } Package;
 
+char* buffer;
+
 
 void WritingToFile(void *arg){
 
 	Package* package = (Package*)arg;
-	char buffer[BUFFER];
+	
 	memset(buffer,0,BUFFER);
 	int size = read(0,buffer,BUFFER);
 	if (strcmp(package->flag , "-e") == 0){
@@ -53,6 +55,7 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 	struct Package* package = malloc( sizeof( struct Package));
+	buffer = malloc( BUFFER * sizeof( struct char));
 	package->key = atoi(argv[1]);
 
 	if( strcmp(argv[2],"-e") != 0  && strcmp(argv[2],"-d") != 0 )
@@ -79,6 +82,7 @@ int main(int argc, char *argv[])
 	puts("Killing threadpool");
 	thpool_destroy(thpool);
 	free(package);
+	free(buffer);
 
 	return 0;
 }
