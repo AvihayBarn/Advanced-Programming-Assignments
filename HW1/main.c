@@ -60,7 +60,8 @@ int main(int argc, char *argv[])
 		perror("Not a valid flag");
 		exit(0);
 	}
-	package->flag = (strcmp(argv[2], "-e")) ? "-e" : "-d";
+	package->flag[0] = '-';
+	package->flag[1] = (strcmp(argv[2], "-e")) ? 'e' : 'd';
 		
 	puts("Making threadpool with 4 threads");
 	threadpool thpool = thpool_init(4);
