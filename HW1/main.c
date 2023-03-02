@@ -1,90 +1,109 @@
 #include "codec.h"
 #include <stdio.h>
+#include <string.h>
 #include <pthread.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include "thpool.h"
+#include <unistd.h>
 
-#define BUFFER 1024
-#define THREADS 4
+#define BUFFER_SIZE 1024
+#define THREAD_NUM 4 // c
 
- 
-typedef struct Package{
-	int key;
-	char flag[2];
-	
-} Package;
+int key;
+char *flag;
+// char arr[256][BUFFER_SIZE];
 
-char* buffer;
+typedef struct Task{
+	int index;
+	char buffer[BUFFER_SIZE];
+} Task;
 
+Task taskQueue[256];
+int taskCount = 0;
 
-void WritingToFile(void *arg){
+pthread_mutex_t mutexQueue;
+pthread_cond_t condQueue;
 
-	Package* package = (Package*)arg;
-	
-	memset(buffer,0,BUFFER);
-	int size = read(0,buffer,BUFFER);
-	if (strcmp(package->flag , "-e") == 0){
-		printf("%s", buffer);
-		encrypt(buffer, package->key);
-		printf("%s", buffer);
-		
+void executeTask(Task* task) {
+	if (strcmp(flag, "-e") == 0){
+		encrypt(task->buffer, key);
+		printf("%s", task->buffer);
+		// memcpy(&arr[task->index], task->buffer, sizeof(task->buffer));
 	}
-	else if (strcmp(package->flag , "-d") == 0){
-		printf("%s", buffer);
-		decrypt(buffer, package->key);
-		printf("%s", buffer);
-		
+	else if (strcmp(flag, "-d") == 0){
+		decrypt(task->buffer, key);
+		printf("%s", task->buffer);
+		// memcpy(&arr[task->index], task->buffer, sizeof(task->buffer));
 	}
 }
 
-int main(int argc, char *argv[])
-{
-	
-	/*char data[] = "my text to encrypt";
-	int key = 12;
+void submitTask(Task task) {
+    pthread_mutex_lock(&mutexQueue);
+    taskQueue[taskCount] = task;
+    taskCount++;
+    pthread_mutex_unlock(&mutexQueue);
+    pthread_cond_signal(&condQueue);
+}
 
-	encrypt(data,key);
-	printf("encripted data: %s\n",data);
+void* startThread(void* args) {
+    while (taskCount > 0){
+		Task task;
 
-	decrypt(data,key);
-	printf("decripted data: %s\n",data);*/
-	
-	if(argc != 3)
-	{
-		perror("Not a valid number of arguments");
-		exit(0);
+		pthread_mutex_lock(&mutexQueue);
+		while (taskCount == 0)
+			pthread_cond_wait(&condQueue, &mutexQueue);
+
+		task = taskQueue[0];
+		for (int i = 0; i < taskCount - 1; i++)
+			taskQueue[i] = taskQueue[i + 1];
+		taskCount--;
+		pthread_mutex_unlock(&mutexQueue);
+		executeTask(&task);
 	}
-	struct Package* package = malloc( sizeof( struct Package));
-	buffer = malloc( BUFFER * sizeof(char));
-	package->key = atoi(argv[1]);
+	return 0;
+}
 
-	if( strcmp(argv[2],"-e") != 0  && strcmp(argv[2],"-d") != 0 )
-	{
-		printf("%s",argv[2]);
-		perror("Not a valid flag");
+int main(int argc, char* argv[]) {
+    // Check valid input
+	if (argc != 3)
 		exit(0);
-	}
-	package->flag[0] = '-';
-	package->flag[1] = (strcmp(argv[1], "-e")) ? 'e' : 'd';
-		
-	puts("Making threadpool with 4 threads");
-	threadpool thpool = thpool_init(4);
 
-	puts("Adding 4 tasks to threadpool");
-	
-    for (int i=0; i < 40; i++){
-		thpool_add_work(thpool, WritingToFile, (void*)(Package*)package);
-	};
-	
+	// Get data from input args
+	key = atoi(argv[1]);
+	flag = argv[2];
+
+	if (strcmp(flag, "-e") != 0 && strcmp(flag, "-d") != 0)
+		exit(0);
 	
 
-	thpool_wait(thpool);
-	puts("Killing threadpool");
-	thpool_destroy(thpool);
-	free(package);
-	free(buffer);
+	pthread_t threads[THREAD_NUM];
+	pthread_mutex_init(&mutexQueue, NULL);
+	pthread_cond_init(&condQueue, NULL);
+
+	// Read file from the input
+	char buffer[BUFFER_SIZE]; // Buffer to store data
+	int size = read(0, buffer, BUFFER_SIZE);
+	Task newTask;
+	int index = taskCount + 1; 
+	newTask.index = index;
+	memset(&newTask.buffer,0,BUFFER_SIZE);
+	memcpy(&newTask.buffer, buffer, size);
+
+	submitTask(newTask);
+	
+	// Create threads
+	for (int i = 0; i < THREAD_NUM; i++)
+		if (pthread_create(&threads[i], NULL, &startThread, NULL) != 0)
+			perror("Failed to create the thread");
+
+	for (int i = 0; i < THREAD_NUM; i++)
+		if (pthread_join(threads[i], NULL) != 0)	
+			perror("Failed to join the thread");
+
+			
+	pthread_cond_destroy(&condQueue);
+	pthread_mutex_destroy(&mutexQueue);
+	// printf("%s", arr[index]);
+
 
 	return 0;
 }
