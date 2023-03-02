@@ -4,7 +4,7 @@ all: coder
 
 
 coder: thpool.o main.o
-	gcc -o coder thpool.o main.o
+	gcc -o coder thpool.o main.o ./libCodec.so
 
 
 
